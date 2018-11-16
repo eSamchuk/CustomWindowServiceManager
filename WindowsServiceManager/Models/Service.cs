@@ -3,7 +3,8 @@ using System.IO;
 using System.ServiceProcess;
 using PropertyChanged;
 
-namespace WindowsServiceManager
+namespace WindowsServiceManager.Models
+
 {
     [Serializable]
     [AddINotifyPropertyChangedInterface]

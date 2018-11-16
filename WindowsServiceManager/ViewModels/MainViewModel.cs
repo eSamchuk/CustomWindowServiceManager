@@ -1,27 +1,26 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.ServiceProcess;
-using System.Windows;
-using System.Linq;
-using System.Xml.Serialization;
-
-using PropertyChanged;
-using System.IO;
-using System.Diagnostics;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Input;
-using System.ComponentModel;
+using System.Xml.Serialization;
+using Microsoft.Win32;
+using PropertyChanged;
+using WindowsServiceManager.Models;
 
-namespace WindowsServiceManager
+namespace WindowsServiceManager.ViewModels
 {
-
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     [AddINotifyPropertyChangedInterface]
-    public partial class MainWindow : Window
+    public class MainViewModel
     {
+
         const int awaitInterval = 10;
 
         private XmlSerializer xs = new XmlSerializer(typeof(ObservableCollection<Service>));
@@ -32,13 +31,72 @@ namespace WindowsServiceManager
 
         public ObservableCollection<string> Messages { get; set; } = new ObservableCollection<string>();
 
-        public MainWindow()
+
+
+
+        #region Commands
+
+        public ICommand SaveOnExitCommand { get; set; }
+
+        public ICommand LoadServicesCommand { get; set; }
+
+        public ICommand AddServiceCommand { get; set; }
+
+        public ICommand InstallServiceCommand { get; set; }
+
+        public ICommand StartServiceCommand { get; set; }
+
+        public ICommand StopServiceCommand { get; set; }
+
+        public ICommand RestartServiceCommand { get; set; }
+
+        public ICommand UninstallServiceCommand { get; set; }
+
+        public RelayCommand RemoveServiceCommand { get; set; }
+        public object Cursor { get; private set; }
+
+
+        #endregion
+
+        public MainViewModel()
         {
-            InitializeComponent();
-            this.DataContext = this;
+            this.AddServiceCommand = new RelayCommand(this.AddService);
+            this.InstallServiceCommand = new RelayCommand(this.InstallService);
+            this.StartServiceCommand = new RelayCommand(this.StartService);
+            this.StopServiceCommand = new RelayCommand(this.StopService);
+            this.RestartServiceCommand = new RelayCommand(RestartService);
+            this.RemoveServiceCommand = new RelayCommand(this.RemoveService);
+            this.UninstallServiceCommand = new RelayCommand(this.Uninstall);
+            this.LoadServicesCommand = new RelayCommand(this.LoadServices);
+            this.SaveOnExitCommand = new RelayCommand(this.SaveOnExit);
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void SaveOnExit()
+        {
+            XmlSerializer xs = new XmlSerializer(typeof(ObservableCollection<Service>));
+
+            using (System.IO.FileStream fs = new FileStream("Services.xml", System.IO.FileMode.Create))
+            {
+                xs.Serialize(fs, Services);
+            }
+        }
+
+        private void LoadServices()
+        {
+            using (FileStream fs = new FileStream("Services.xml", System.IO.FileMode.Open))
+            {
+                Services = xs.Deserialize(fs) as ObservableCollection<Service>;
+            }
+
+            SelectedService = Services.FirstOrDefault();
+
+            foreach (var item in Services)
+            {
+                item.State = this.GetServiceState(item.DisplayName);
+            }
+        }
+
+        private void AddService()
         {
             ////TODO повторне додавання існуючого сервіса
 
@@ -89,73 +147,7 @@ namespace WindowsServiceManager
             }
         }
 
-        private void Install_Click(object sender, RoutedEventArgs e)
-        {
-            ////TODO помилка в процесі інсталяції
-
-            this.Cursor = Cursors.Wait;
-
-            Process p = new Process();
-            p.StartInfo = new ProcessStartInfo()
-            {
-                FileName = "cmd.exe",
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WorkingDirectory = "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319"
-            };
-
-            p.Start();
-
-            p.StandardInput.WriteLine($"installutil.exe {SelectedService.ExecutablePath}");
-
-            do
-            {
-                SelectedService.State = GetServiceState(SelectedService.DisplayName);
-            }
-            while (SelectedService.State != ServiceStates.Stopped);
-
-            ServiceController sc = new ServiceController(SelectedService.DisplayName);
-
-            SelectedService.State = GetServiceState(SelectedService.DisplayName);
-
-            Messages.Add($"{SelectedService.DisplayName} successfully installed");
-
-            this.Cursor = Cursors.Arrow;
-
-        }
-
-        private void Start_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                ServiceController sc = new ServiceController(SelectedService.DisplayName);
-
-                if (sc.Status == ServiceControllerStatus.Stopped)
-                {
-                    sc.Start();
-                    sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(awaitInterval));
-                    Messages.Add($"{SelectedService.DisplayName} started successfully");
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                Messages.Add($"Service with name '{SelectedService.DisplayName}' was not found");
-            }
-            catch (Win32Exception ex)
-            {
-                Messages.Add(ex.Message);
-            }
-            catch (ArgumentException)
-            {
-                Messages.Add($"Invalid Service name");
-            }
-
-            SelectedService.State = this.GetServiceState(SelectedService.DisplayName);
-        }
-
-        private void Stop_Click(object sender, RoutedEventArgs e)
+        private void StopService()
         {
             try
             {
@@ -185,7 +177,7 @@ namespace WindowsServiceManager
             SelectedService.State = this.GetServiceState(SelectedService.DisplayName);
         }
 
-        private void Restart_Click(object sender, RoutedEventArgs e)
+        private void RestartService()
         {
             try
             {
@@ -220,7 +212,7 @@ namespace WindowsServiceManager
             }
         }
 
-        private void Uninstall_Click(object sender, RoutedEventArgs e)
+        private void Uninstall()
         {
             //// TODO помилки на етапі видалення - служби нема
 
@@ -256,35 +248,75 @@ namespace WindowsServiceManager
             this.Cursor = Cursors.Arrow;
         }
 
-        private void Remove_Click(object sender, RoutedEventArgs e)
+        private void RemoveService()
         {
             Messages.Add($"{SelectedService.DisplayName} successfully removed");
             Services.Remove(SelectedService);
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void StartService()
         {
-            using (System.IO.FileStream fs = new FileStream("Services.xml", System.IO.FileMode.Open))
+            try
             {
-                Services = xs.Deserialize(fs) as ObservableCollection<Service>;
+                ServiceController sc = new ServiceController(SelectedService.DisplayName);
+
+                if (sc.Status == ServiceControllerStatus.Stopped)
+                {
+                    sc.Start();
+                    sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(awaitInterval));
+                    Messages.Add($"{SelectedService.DisplayName} started successfully");
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                Messages.Add($"Service with name '{SelectedService.DisplayName}' was not found");
+            }
+            catch (Win32Exception ex)
+            {
+                Messages.Add(ex.Message);
+            }
+            catch (ArgumentException)
+            {
+                Messages.Add($"Invalid Service name");
             }
 
-            SelectedService = Services.FirstOrDefault();
-
-            foreach (var item in Services)
-            {
-                item.State = this.GetServiceState(item.DisplayName);
-            }
+            SelectedService.State = this.GetServiceState(SelectedService.DisplayName);
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void InstallService()
         {
-            XmlSerializer xs = new XmlSerializer(typeof(ObservableCollection<Service>));
+            ////TODO помилка в процесі інсталяції
 
-            using (System.IO.FileStream fs = new FileStream("Services.xml", System.IO.FileMode.Create))
+            this.Cursor = Cursors.Wait;
+
+            Process p = new Process();
+            p.StartInfo = new ProcessStartInfo()
             {
-                xs.Serialize(fs, Services);
+                FileName = "cmd.exe",
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WorkingDirectory = "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319"
+            };
+
+            p.Start();
+
+            p.StandardInput.WriteLine($"installutil.exe {SelectedService.ExecutablePath}");
+
+            do
+            {
+                SelectedService.State = GetServiceState(SelectedService.DisplayName);
             }
+            while (SelectedService.State != ServiceStates.Stopped);
+
+            ServiceController sc = new ServiceController(SelectedService.DisplayName);
+
+            SelectedService.State = GetServiceState(SelectedService.DisplayName);
+
+            Messages.Add($"{SelectedService.DisplayName} successfully installed");
+
+            this.Cursor = Cursors.Arrow;
         }
 
         private ServiceStates GetServiceState(string displayName)
@@ -334,5 +366,6 @@ namespace WindowsServiceManager
 
             return result;
         }
+
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace WindowsServiceManager
+﻿namespace WindowsServiceManager.Models
 {
     public enum ServiceStates
     {

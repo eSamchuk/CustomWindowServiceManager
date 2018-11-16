@@ -4,12 +4,22 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WindowsServiceManager"
+        xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         mc:Ignorable="d"
-        Loaded="Window_Loaded"
-        Closing="Window_Closing"
         Title="MainWindow" Width="424.69" Height="420">
-    <Grid>
 
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Window.Closing">
+            <i:InvokeCommandAction Command="{Binding SaveOnExitCommand}"/>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Window.Loaded">
+            <i:InvokeCommandAction Command="{Binding LoadServicesCommand}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
+    <Grid>
+        
         <Grid.Resources>
 
             <Style TargetType="Path">
@@ -50,7 +60,7 @@
             <ComboBox SelectedItem="{Binding SelectedService}"
                 ItemsSource="{Binding Services, UpdateSourceTrigger=PropertyChanged}" Height="30"/>
 
-            <Button Click="Button_Click" Grid.Column="2" Padding="5"
+            <Button Command="{Binding AddServiceCommand}" Grid.Column="2" Padding="5"
                     Content="Add service"/>
 
         </Grid>
@@ -71,22 +81,28 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
 
-            <Button x:Name="Install" Click="Install_Click" IsEnabled="{Binding SelectedService.CanInstall}">
+            <Button x:Name="Install" Command="{Binding InstallServiceCommand}"
+                    IsEnabled="{Binding SelectedService.CanInstall}">
                 <Path Data="{StaticResource Install}"/>
             </Button>
-            <Button Grid.Column="2" x:Name="Start" Click="Start_Click" IsEnabled="{Binding SelectedService.CanStart}">
+            <Button Grid.Column="2" x:Name="Start" Command="{Binding StartServiceCommand}"
+                    IsEnabled="{Binding SelectedService.CanStart}">
                 <Path Data="{StaticResource Start}"/>
             </Button>
-            <Button Grid.Column="4" x:Name="Stop" Click="Stop_Click" IsEnabled="{Binding SelectedService.CanStop}">
+            <Button Grid.Column="4" x:Name="Stop" Command="{Binding StopServiceCommand}"
+                    IsEnabled="{Binding SelectedService.CanStop}">
                 <Path Data="{StaticResource Stop}" Margin="8"/>
             </Button>
-            <Button Grid.Column="6" x:Name="Restart" Click="Restart_Click" IsEnabled="{Binding SelectedService.CanRestart}">
+            <Button Grid.Column="6" x:Name="Restart" Command="{Binding RestartServiceCommand}"
+                    IsEnabled="{Binding SelectedService.CanRestart}">
                 <Path Data="{StaticResource Restart}"/>
             </Button>
-            <Button Grid.Column="8" x:Name="Uninstall" Click="Uninstall_Click" IsEnabled="{Binding SelectedService.CanUninstall}">
+            <Button Grid.Column="8" x:Name="Uninstall" Command="{Binding UninstallServiceCommand}"
+                    IsEnabled="{Binding SelectedService.CanUninstall}">
                 <Path Data="{StaticResource Uninstall}"/>
             </Button>
-            <Button Grid.Column="10" x:Name="Remove" Click="Remove_Click" IsEnabled="{Binding SelectedService.CanRemove}">
+            <Button Grid.Column="10" x:Name="Remove" Command="{Binding RemoveServiceCommand}"
+                    IsEnabled="{Binding SelectedService.CanRemove}">
                 <Path Data="{StaticResource Remove}"/>
             </Button>
 
