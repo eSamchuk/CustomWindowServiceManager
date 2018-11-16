@@ -5,8 +5,99 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WindowsServiceManager"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Loaded="Window_Loaded"
+        Closing="Window_Closing"
+        Title="MainWindow" Width="424.69" Height="420">
     <Grid>
+
+        <Grid.Resources>
+
+            <Style TargetType="Path">
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="Stretch" Value="Uniform"/>
+                <Setter Property="Fill" Value="Black"/>
+            </Style>
+        </Grid.Resources>
         
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="250"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="5"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition />
+            <ColumnDefinition Width="5"/>
+        </Grid.ColumnDefinitions>
+
+
+        <Grid Grid.Row="1" Grid.Column="1">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+
+            <ComboBox SelectedItem="{Binding SelectedService}"
+                ItemsSource="{Binding Services, UpdateSourceTrigger=PropertyChanged}" Height="30"/>
+
+            <Button Click="Button_Click" Grid.Column="2" Padding="5"
+                    Content="Add service"/>
+
+        </Grid>
+
+        <Grid Grid.Row="3" Grid.Column="1">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <Button x:Name="Install" Click="Install_Click" IsEnabled="{Binding SelectedService.CanInstall}">
+                <Path Data="{StaticResource Install}"/>
+            </Button>
+            <Button Grid.Column="2" x:Name="Start" Click="Start_Click" IsEnabled="{Binding SelectedService.CanStart}">
+                <Path Data="{StaticResource Start}"/>
+            </Button>
+            <Button Grid.Column="4" x:Name="Stop" Click="Stop_Click" IsEnabled="{Binding SelectedService.CanStop}">
+                <Path Data="{StaticResource Stop}" Margin="8"/>
+            </Button>
+            <Button Grid.Column="6" x:Name="Restart" Click="Restart_Click" IsEnabled="{Binding SelectedService.CanRestart}">
+                <Path Data="{StaticResource Restart}"/>
+            </Button>
+            <Button Grid.Column="8" x:Name="Uninstall" Click="Uninstall_Click" IsEnabled="{Binding SelectedService.CanUninstall}">
+                <Path Data="{StaticResource Uninstall}"/>
+            </Button>
+            <Button Grid.Column="10" x:Name="Remove" Click="Remove_Click" IsEnabled="{Binding SelectedService.CanRemove}">
+                <Path Data="{StaticResource Remove}"/>
+            </Button>
+
+        </Grid>
+
+        <ListBox ItemsSource="{Binding Messages}"
+                 VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
+                 Grid.Row="5" Grid.Column="1"/>
+
+        <TextBlock Text="{Binding SelectedService.State, StringFormat='Service status: {0}'}"
+                   Grid.Row="7" Grid.Column="1"/>
+
     </Grid>
 </Window>
