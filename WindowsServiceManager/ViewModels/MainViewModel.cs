@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Configuration.Install;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -30,9 +31,6 @@ namespace WindowsServiceManager.ViewModels
         public ObservableCollection<Service> Services { get; set; } = new ObservableCollection<Service>();
 
         public ObservableCollection<string> Messages { get; set; } = new ObservableCollection<string>();
-
-
-
 
         #region Commands
 
@@ -69,6 +67,7 @@ namespace WindowsServiceManager.ViewModels
             this.UninstallServiceCommand = new RelayCommand(this.Uninstall);
             this.LoadServicesCommand = new RelayCommand(this.LoadServices);
             this.SaveOnExitCommand = new RelayCommand(this.SaveOnExit);
+            LoadServices();
         }
 
         private void SaveOnExit()
@@ -111,25 +110,26 @@ namespace WindowsServiceManager.ViewModels
                 s.ExecutablePath = d.FileName;
 
                 Assembly svcAssembly = Assembly.LoadFrom(d.FileName);
-                foreach (Type t in svcAssembly.GetTypes())
+
+                var t = svcAssembly.GetTypes();
+                bool HasInstaller = svcAssembly.GetTypes().Where(x => x.BaseType == typeof(Installer)) != null;
+                Type svcBaseType = svcAssembly.GetTypes().FirstOrDefault(x => x.BaseType == typeof(ServiceBase));
+
+                if (HasInstaller && svcBaseType != null)
                 {
-                    if (t.BaseType == typeof(ServiceBase))
+                    ConstructorInfo conInf = svcBaseType.GetConstructor(new Type[] { });
+                    if (conInf != null)
                     {
-                        ConstructorInfo conInf = t.GetConstructor(new Type[] { });
-                        if (conInf != null)
-                        {
-                            ServiceBase svcBase = conInf.Invoke(new object[] { }) as ServiceBase;
-                            s.DisplayName = svcBase.ServiceName;
-                            IsWinService = true;
-                            break;
-                        }
+                        ServiceBase svcBase = conInf.Invoke(new object[] { }) as ServiceBase;
+                        s.DisplayName = svcBase.ServiceName;
+                        IsWinService = true;
                     }
                 }
 
                 if (IsWinService)
                 {
                     Services.Add(s);
-                    Messages.Add($"{new FileInfo(s.ExecutablePath).Name} succesfully added to list");
+                    Messages.Insert(0, $"{new FileInfo(s.ExecutablePath).Name} succesfully added to list");
 
                     if (IsServiceExist(s.DisplayName))
                     {
@@ -142,7 +142,7 @@ namespace WindowsServiceManager.ViewModels
                 }
                 else
                 {
-                    Messages.Add($"{new FileInfo(s.ExecutablePath).Name} is not a Windows service");
+                    Messages.Insert(0, $"{new FileInfo(s.ExecutablePath).Name} is not a Windows service");
                 }
             }
         }
@@ -158,20 +158,22 @@ namespace WindowsServiceManager.ViewModels
                     sc.Stop();
                     sc.WaitForStatus(ServiceControllerStatus.Stopped);
 
-                    Messages.Add($"{SelectedService.DisplayName} successfully stopped");
+                    Messages.Insert(0, $"{SelectedService.DisplayName} successfully stopped");
                 }
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
-                Messages.Add($"Service with name '{SelectedService.DisplayName}' was not found");
+                Messages.Insert(0, ex.Message);
+                Messages.Insert(1, ex.InnerException.Message);
+
             }
             catch (Win32Exception ex)
             {
-                Messages.Add(ex.Message);
+                Messages.Insert(0, ex.Message);
             }
             catch (ArgumentException)
             {
-                Messages.Add($"Invalid Service name");
+                Messages.Insert(0, $"Invalid Service name");
             }
 
             SelectedService.State = this.GetServiceState(SelectedService.DisplayName);
@@ -194,63 +196,67 @@ namespace WindowsServiceManager.ViewModels
                     Messages.Add($"{SelectedService.DisplayName} successfully stopped and started again");
                 }
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ec)
             {
-                Messages.Add($"Service with name '{SelectedService.DisplayName}' was not found");
+                Messages.Insert(0, ec.Message);
+                Messages.Insert(1, ec.InnerException.Message);
             }
             catch (Win32Exception ex)
             {
-                Messages.Add(ex.Message);
+                Messages.Insert(0, ex.Message);
             }
             catch (InvalidEnumArgumentException)
             {
-                Messages.Add($"Wrong awaitable service status");
+                Messages.Insert(0, $"Wrong awaitable service status");
             }
             catch (ArgumentException)
             {
-                Messages.Add($"Invalid Service name");
+                Messages.Insert(0, $"Invalid Service name");
             }
         }
 
         private void Uninstall()
         {
-            //// TODO помилки на етапі видалення - служби нема
-
-            this.Cursor = Cursors.Wait;
-
-            Process p = new Process();
-            p.StartInfo = new ProcessStartInfo()
+            try
             {
-                FileName = "cmd.exe",
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WorkingDirectory = "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319"
-            };
+                this.Cursor = Cursors.Wait;
 
-            p.Start();
+                Process p = new Process();
+                p.StartInfo = new ProcessStartInfo()
+                {
+                    FileName = "cmd.exe",
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319"
+                };
 
-            p.StandardInput.WriteLine($"installutil.exe /u {SelectedService.ExecutablePath}");
+                p.Start();
 
-            do
-            {
+                p.StandardInput.WriteLine($"installutil.exe /u {SelectedService.ExecutablePath}");
+
+                do
+                {
+                    SelectedService.State = GetServiceState(SelectedService.DisplayName);
+                }
+                while (SelectedService.State != ServiceStates.NotInstalled);
+
                 SelectedService.State = GetServiceState(SelectedService.DisplayName);
+
+                Messages.Insert(0, $"{SelectedService.DisplayName} successfully uninstalled");
             }
-            while (SelectedService.State != ServiceStates.NotInstalled);
-
-            ServiceController sc = new ServiceController(SelectedService.DisplayName);
-
-            SelectedService.State = GetServiceState(SelectedService.DisplayName);
-
-            Messages.Add($"{SelectedService.DisplayName} successfully uninstalled");
-
+            catch (Exception ex)
+            {
+                Messages.Insert(0, ex.Message);
+                Messages.Insert(1, ex.InnerException.Message);
+            }
             this.Cursor = Cursors.Arrow;
         }
 
         private void RemoveService()
         {
-            Messages.Add($"{SelectedService.DisplayName} successfully removed");
+            Messages.Insert(0, $"{SelectedService.DisplayName} successfully removed");
             Services.Remove(SelectedService);
         }
 
@@ -264,20 +270,22 @@ namespace WindowsServiceManager.ViewModels
                 {
                     sc.Start();
                     sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(awaitInterval));
-                    Messages.Add($"{SelectedService.DisplayName} started successfully");
+                    Messages.Insert(0, $"{SelectedService.DisplayName} started successfully");
                 }
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
-                Messages.Add($"Service with name '{SelectedService.DisplayName}' was not found");
+                Messages.Insert(0, ex.Message);
+                Messages.Insert(1, ex.InnerException.Message);
+
             }
             catch (Win32Exception ex)
             {
-                Messages.Add(ex.Message);
+                Messages.Insert(0, ex.Message);
             }
             catch (ArgumentException)
             {
-                Messages.Add($"Invalid Service name");
+                Messages.Insert(0, $"Invalid Service name");
             }
 
             SelectedService.State = this.GetServiceState(SelectedService.DisplayName);
@@ -314,7 +322,7 @@ namespace WindowsServiceManager.ViewModels
 
             SelectedService.State = GetServiceState(SelectedService.DisplayName);
 
-            Messages.Add($"{SelectedService.DisplayName} successfully installed");
+            Messages.Insert(0, $"{SelectedService.DisplayName} successfully installed");
 
             this.Cursor = Cursors.Arrow;
         }
@@ -350,8 +358,7 @@ namespace WindowsServiceManager.ViewModels
 
         private bool IsServiceExist(string displayName)
         {
-            ServiceController[] services = ServiceController.GetServices();
-            var devices = ServiceController.GetDevices();
+            var services = ServiceController.GetServices().OrderBy(x => x.DisplayName).ToList();
 
             bool result = false;
 

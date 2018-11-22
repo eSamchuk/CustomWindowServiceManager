@@ -8,6 +8,7 @@
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         mc:Ignorable="d"
         Title="MainWindow" Width="424.69" Height="420">
+        <!--Icon="../services3.ico"-->
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Window.Closing">
