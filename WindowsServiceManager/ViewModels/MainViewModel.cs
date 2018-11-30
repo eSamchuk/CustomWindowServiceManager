@@ -21,7 +21,6 @@ namespace WindowsServiceManager.ViewModels
     [AddINotifyPropertyChangedInterface]
     public class MainViewModel
     {
-
         const int awaitInterval = 10;
 
         private XmlSerializer xs = new XmlSerializer(typeof(ObservableCollection<Service>));
@@ -32,7 +31,11 @@ namespace WindowsServiceManager.ViewModels
 
         public ObservableCollection<string> Messages { get; set; } = new ObservableCollection<string>();
 
-        #region Commands
+        public ObservableCollection<EventLogEntry> EventLog { get; set; } = new ObservableCollection<EventLogEntry>();
+
+        public EventLogEntry SelectedEntry { get; set; }
+
+        #region Commands 
 
         public ICommand SaveOnExitCommand { get; set; }
 
@@ -50,7 +53,10 @@ namespace WindowsServiceManager.ViewModels
 
         public ICommand UninstallServiceCommand { get; set; }
 
-        public RelayCommand RemoveServiceCommand { get; set; }
+        public ICommand RemoveServiceCommand { get; set; }
+
+        public ICommand LoadEventLogCommand { get; set; }
+
         public object Cursor { get; private set; }
 
 
@@ -67,6 +73,7 @@ namespace WindowsServiceManager.ViewModels
             this.UninstallServiceCommand = new RelayCommand(this.Uninstall);
             this.LoadServicesCommand = new RelayCommand(this.LoadServices);
             this.SaveOnExitCommand = new RelayCommand(this.SaveOnExit);
+            this.LoadEventLogCommand = new RelayCommand(this.LoadEventLog);
             LoadServices();
         }
 
@@ -74,7 +81,7 @@ namespace WindowsServiceManager.ViewModels
         {
             XmlSerializer xs = new XmlSerializer(typeof(ObservableCollection<Service>));
 
-            using (System.IO.FileStream fs = new FileStream("Services.xml", System.IO.FileMode.Create))
+            using (System.IO.FileStream fs = new FileStream("Services.xml", System.IO.FileMode.Open))
             {
                 xs.Serialize(fs, Services);
             }
@@ -82,7 +89,7 @@ namespace WindowsServiceManager.ViewModels
 
         private void LoadServices()
         {
-            using (FileStream fs = new FileStream("Services.xml", System.IO.FileMode.Open))
+            using (FileStream fs = new FileStream("Services.xml", System.IO.FileMode.OpenOrCreate))
             {
                 Services = xs.Deserialize(fs) as ObservableCollection<Service>;
             }
@@ -139,6 +146,8 @@ namespace WindowsServiceManager.ViewModels
                     {
                         s.State = ServiceStates.NotInstalled;
                     }
+
+                    SaveOnExit();
                 }
                 else
                 {
@@ -374,5 +383,11 @@ namespace WindowsServiceManager.ViewModels
             return result;
         }
 
+        private void LoadEventLog()
+        {
+            this.EventLog = new ObservableCollection<EventLogEntry>(new EventLog("Application")
+                .Entries.Cast<EventLogEntry>()
+                .Where(x => x.EntryType == EventLogEntryType.Error && x.TimeGenerated.Date == DateTime.Now.Date));
+        }
     }
 }
