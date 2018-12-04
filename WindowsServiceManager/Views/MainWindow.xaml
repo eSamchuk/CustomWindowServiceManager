@@ -16,7 +16,6 @@
             <Grid>
 
                 <Grid.Resources>
-
                     <Style TargetType="Path">
                         <Setter Property="Margin" Value="5"/>
                         <Setter Property="Stretch" Value="Uniform"/>
@@ -24,14 +23,9 @@
                     </Style>
                 </Grid.Resources>
 
-
                 <Grid.RowDefinitions>
                     <RowDefinition Height="5"/>
-                    <RowDefinition Height="50"/>
-                    <RowDefinition Height="5"/>
                     <RowDefinition />
-                    <RowDefinition Height="5"/>
-                    <RowDefinition Height="30"/>
                     <RowDefinition Height="5"/>
                 </Grid.RowDefinitions>
 
@@ -43,67 +37,107 @@
                     <ColumnDefinition Width="5"/>
                 </Grid.ColumnDefinitions>
 
-                <ListBox Grid.Row="3" Grid.Column="1"
-                 SelectedItem="{Binding SelectedService}"
-                 ItemsSource="{Binding Services, UpdateSourceTrigger=PropertyChanged}">
 
-                </ListBox>
+                <Grid Grid.Column="1" Grid.Row="1">
 
-                <Grid Grid.Row="1" Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="30"/>
+                    </Grid.RowDefinitions>
 
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
+                    <Grid>
 
-                    <Button Grid.Column="0" x:Name="Add" ToolTip="Add service"
-                    Command="{Binding AddServiceCommand}">
-                        <Path Data="{StaticResource Add}"/>
-                    </Button>
-                    <Button Grid.Column="2" x:Name="Install" Command="{Binding InstallServiceCommand}"
-                    IsEnabled="{Binding SelectedService.CanInstall}">
-                        <Path Data="{StaticResource Install}"/>
-                    </Button>
-                    <Button Grid.Column="4" x:Name="Start" Command="{Binding StartServiceCommand}"
-                    IsEnabled="{Binding SelectedService.CanStart}">
-                        <Path Data="{StaticResource Start}"/>
-                    </Button>
-                    <Button Grid.Column="6" x:Name="Stop" Command="{Binding StopServiceCommand}"
-                    IsEnabled="{Binding SelectedService.CanStop}">
-                        <Path Data="{StaticResource Stop}" Margin="8"/>
-                    </Button>
-                    <Button Grid.Column="8" x:Name="Restart" Command="{Binding RestartServiceCommand}"
-                    IsEnabled="{Binding SelectedService.CanRestart}">
-                        <Path Data="{StaticResource Restart}"/>
-                    </Button>
-                    <Button Grid.Column="10" x:Name="Uninstall" Command="{Binding UninstallServiceCommand}"
-                    IsEnabled="{Binding SelectedService.CanUninstall}">
-                        <Path Data="{StaticResource Uninstall}"/>
-                    </Button>
-                    <Button Grid.Column="12" x:Name="Remove" Command="{Binding RemoveServiceCommand}"
-                    IsEnabled="{Binding SelectedService.CanRemove}">
-                        <Path Data="{StaticResource Remove}"/>
-                    </Button>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0" x:Name="Add" ToolTip="Add service"
+                                Command="{Binding AddServiceCommand}">
+                            <Path Data="{StaticResource Add}"/>
+                        </Button>
+                        
+                        <Button Grid.Column="2" x:Name="Install" Command="{Binding InstallServiceCommand}"
+                                IsEnabled="{Binding SelectedService.CanInstall}">
+                            <Path Data="{StaticResource Install}"/>
+                        </Button>
+                        
+                        <Button Grid.Column="4" x:Name="Start" Command="{Binding StartServiceCommand}"
+                                IsEnabled="{Binding SelectedService.CanStart}">
+                            <Path Data="{StaticResource Start}"/>
+                        </Button>
+                        
+                        <Button Grid.Column="6" x:Name="Stop" Command="{Binding StopServiceCommand}"
+                                IsEnabled="{Binding SelectedService.CanStop}">
+                            <Path Data="{StaticResource Stop}" Margin="8"/>
+                        </Button>
+                        
+                        <Button Grid.Column="8" x:Name="Restart" Command="{Binding RestartServiceCommand}"
+                                IsEnabled="{Binding SelectedService.CanRestart}">
+                            <Path Data="{StaticResource Restart}"/>
+                        </Button>
+                        
+                        <Button Grid.Column="10" x:Name="Uninstall" Command="{Binding UninstallServiceCommand}"
+                                IsEnabled="{Binding SelectedService.CanUninstall}">
+                            <Path Data="{StaticResource Uninstall}"/>
+                        </Button>
+                        
+                        <Button Grid.Column="12" x:Name="Remove" Command="{Binding RemoveServiceCommand}"
+                                IsEnabled="{Binding SelectedService.CanRemove}">
+                            <Path Data="{StaticResource Remove}"/>
+                        </Button>
+                        
+                    </Grid>
+
+                    <ListBox SelectedItem="{Binding SelectedService}"
+                             FontSize="18" Grid.Row="2"
+                             ItemsSource="{Binding Services, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Text="{Binding SelectedService.State, StringFormat='Service status: {0}'}" FontSize="18"
+                               Grid.Row="5" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                 </Grid>
 
-                <ListBox ItemsSource="{Binding Messages}"
-                 VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
-                 Grid.Row="1" Grid.Column="3" Grid.RowSpan="5"/>
+                <Grid Grid.Column="3" Grid.Row="1">
 
-                <TextBlock Text="{Binding SelectedService.State, StringFormat='Service status: {0}'}"
-                   Grid.Row="5" Grid.Column="1" HorizontalAlignment="Center"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="10"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="10"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ListBox ItemsSource="{Binding Messages}" Grid.RowSpan="4" Grid.ColumnSpan="4"
+                             VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
+                             FontSize="16"/>
+
+                    <Button Grid.Row="1" Grid.Column="1" 
+                            Command="{Binding ClearLogCommand}">
+                        
+                        <Path Data="{DynamicResource Remove}" Stretch="Uniform"/>
+
+                    </Button>
+
+                </Grid>
 
             </Grid>
 
@@ -133,13 +167,14 @@
 
                 <DataGrid ItemsSource="{Binding EventLog}"
                           SelectedItem="{Binding SelectedEntry}"
-                      CanUserAddRows="False" Grid.Column="1" Grid.Row="3"
+                          CanUserAddRows="False" FontSize="16"
+                          Grid.Column="1" Grid.Row="3"
                           AutoGenerateColumns="False"
-                      >
+                          >
 
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Source" Width="*" Binding="{Binding Source}"/>
-                        <DataGridTextColumn Header="Date and Time" Width="*" Binding="{Binding TimeGenerated}"/>
+                        <DataGridTextColumn Header="Source" Width="*" Binding="{Binding Source, Mode=OneWay}"/>
+                        <DataGridTextColumn Header="Date and Time" Width="auto" Binding="{Binding TimeGenerated, Mode=OneTime}"/>
                     </DataGrid.Columns>
 
                 </DataGrid>
@@ -149,10 +184,13 @@
                            HorizontalAlignment="Center"/>
 
 
+                <GridSplitter Grid.Column="2" Grid.Row="1" Grid.RowSpan="7" HorizontalAlignment="Stretch"/>
+
                 <Button Content="Reload log" Command="{Binding LoadEventLogCommand}" 
                         Grid.Column="1" Grid.Row="1"/>
 
                 <ScrollViewer Grid.Column="3" Grid.Row="1" 
+                              HorizontalScrollBarVisibility="Auto"
                               Grid.RowSpan="5" Grid.ColumnSpan="2">
 
                     <TextBlock Text="{Binding SelectedEntry.Message}"/>

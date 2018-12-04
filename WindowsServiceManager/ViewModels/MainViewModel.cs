@@ -57,6 +57,8 @@ namespace WindowsServiceManager.ViewModels
 
         public ICommand LoadEventLogCommand { get; set; }
 
+        public ICommand ClearLogCommand { get; set; }
+
         public object Cursor { get; private set; }
 
 
@@ -74,7 +76,13 @@ namespace WindowsServiceManager.ViewModels
             this.LoadServicesCommand = new RelayCommand(this.LoadServices);
             this.SaveOnExitCommand = new RelayCommand(this.SaveOnExit);
             this.LoadEventLogCommand = new RelayCommand(this.LoadEventLog);
+            this.ClearLogCommand = new RelayCommand(this.ClearLog);
             LoadServices();
+        }
+
+        private void ClearLog()
+        {
+            this.Messages.Clear();
         }
 
         private void SaveOnExit()
@@ -387,7 +395,8 @@ namespace WindowsServiceManager.ViewModels
         {
             this.EventLog = new ObservableCollection<EventLogEntry>(new EventLog("Application")
                 .Entries.Cast<EventLogEntry>()
-                .Where(x => x.EntryType == EventLogEntryType.Error && x.TimeGenerated.Date == DateTime.Now.Date));
+                .Where(x => x.EntryType == EventLogEntryType.Error && x.TimeGenerated.Date == DateTime.Now.Date)
+                .OrderByDescending(x => x.TimeGenerated));
         }
     }
 }
