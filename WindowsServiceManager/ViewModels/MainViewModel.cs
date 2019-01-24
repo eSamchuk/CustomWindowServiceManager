@@ -29,7 +29,7 @@ namespace WindowsServiceManager.ViewModels
 
         public ObservableCollection<Service> Services { get; set; } = new ObservableCollection<Service>();
 
-        public ObservableCollection<string> Messages { get; set; } = new ObservableCollection<string>();
+        public ObservableCollection<Message> Messages { get; set; } = new ObservableCollection<Message>();
 
         public ObservableCollection<EventLogEntry> EventLog { get; set; } = new ObservableCollection<EventLogEntry>();
 
@@ -144,7 +144,7 @@ namespace WindowsServiceManager.ViewModels
                 if (IsWinService)
                 {
                     Services.Add(s);
-                    Messages.Insert(0, $"{new FileInfo(s.ExecutablePath).Name} succesfully added to list");
+                    Messages.Insert(0, new Message() { Text = $"{new FileInfo(s.ExecutablePath).Name} succesfully added to list" });
 
                     if (IsServiceExist(s.DisplayName))
                     {
@@ -159,7 +159,7 @@ namespace WindowsServiceManager.ViewModels
                 }
                 else
                 {
-                    Messages.Insert(0, $"{new FileInfo(s.ExecutablePath).Name} is not a Windows service");
+                    Messages.Insert(0, new Message() { Text = $"{new FileInfo(s.ExecutablePath).Name} is not a Windows service" });
                 }
             }
         }
@@ -175,22 +175,22 @@ namespace WindowsServiceManager.ViewModels
                     sc.Stop();
                     sc.WaitForStatus(ServiceControllerStatus.Stopped);
 
-                    Messages.Insert(0, $"{SelectedService.DisplayName} successfully stopped");
+                    Messages.Insert(0, new Message() { Text = $"{SelectedService.DisplayName} successfully stopped" });
                 }
             }
             catch (InvalidOperationException ex)
             {
-                Messages.Insert(0, ex.Message);
-                Messages.Insert(1, ex.InnerException.Message);
+                Messages.Insert(0, new Message() { Text = ex.Message });
+                Messages.Insert(1, new Message() { Text = ex.InnerException.Message });
 
             }
             catch (Win32Exception ex)
             {
-                Messages.Insert(0, ex.Message);
+                Messages.Insert(0, new Message() { Text = ex.Message });
             }
             catch (ArgumentException)
             {
-                Messages.Insert(0, $"Invalid Service name");
+                Messages.Insert(0, new Message() { Text = $"Invalid Service name" });
             }
 
             SelectedService.State = this.GetServiceState(SelectedService.DisplayName);
@@ -210,25 +210,25 @@ namespace WindowsServiceManager.ViewModels
                     sc.Start();
                     sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(awaitInterval));
 
-                    Messages.Add($"{SelectedService.DisplayName} successfully stopped and started again");
+                    Messages.Add(new Message() { Text = $"{SelectedService.DisplayName} successfully stopped and started again" });
                 }
             }
             catch (InvalidOperationException ec)
             {
-                Messages.Insert(0, ec.Message);
-                Messages.Insert(1, ec.InnerException.Message);
+                Messages.Insert(0, new Message() { Text = ec.Message });
+                Messages.Insert(1, new Message() { Text = ec.InnerException.ToString()});
             }
             catch (Win32Exception ex)
             {
-                Messages.Insert(0, ex.Message);
+                Messages.Insert(0, new Message() { Text = ex.Message });
             }
             catch (InvalidEnumArgumentException)
             {
-                Messages.Insert(0, $"Wrong awaitable service status");
+                Messages.Insert(0, new Message() { Text = $"Wrong awaitable service status" });
             }
             catch (ArgumentException)
             {
-                Messages.Insert(0, $"Invalid Service name");
+                Messages.Insert(0, new Message() { Text = $"Invalid Service name" });
             }
         }
 
@@ -261,19 +261,19 @@ namespace WindowsServiceManager.ViewModels
 
                 SelectedService.State = GetServiceState(SelectedService.DisplayName);
 
-                Messages.Insert(0, $"{SelectedService.DisplayName} successfully uninstalled");
+                Messages.Insert(0, new Message() { Text = $"{SelectedService.DisplayName} successfully uninstalled" });
             }
             catch (Exception ex)
             {
-                Messages.Insert(0, ex.Message);
-                Messages.Insert(1, ex.InnerException.Message);
+                Messages.Insert(0, new Message() { Text = ex.Message });
+                Messages.Insert(1, new Message() { Text = ex.InnerException.Message });
             }
             this.Cursor = Cursors.Arrow;
         }
 
         private void RemoveService()
         {
-            Messages.Insert(0, $"{SelectedService.DisplayName} successfully removed");
+            Messages.Insert(0, new Message() { Text = $"{SelectedService.DisplayName} successfully removed" });
             Services.Remove(SelectedService);
         }
 
@@ -287,22 +287,22 @@ namespace WindowsServiceManager.ViewModels
                 {
                     sc.Start();
                     sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(awaitInterval));
-                    Messages.Insert(0, $"{SelectedService.DisplayName} started successfully");
+                    Messages.Insert(0, new Message() { Text = $"{SelectedService.DisplayName} started successfully" });
                 }
             }
             catch (InvalidOperationException ex)
             {
-                Messages.Insert(0, ex.Message);
-                Messages.Insert(1, ex.InnerException.Message);
+                Messages.Insert(0, new Message() { Text = ex.Message });
+                Messages.Insert(1, new Message() { Text = ex.InnerException.Message });
 
             }
             catch (Win32Exception ex)
             {
-                Messages.Insert(0, ex.Message);
+                Messages.Insert(0, new Message() { Text = ex.Message });
             }
             catch (ArgumentException)
             {
-                Messages.Insert(0, $"Invalid Service name");
+                Messages.Insert(0, new Message() { Text = $"Invalid Service name" });
             }
 
             SelectedService.State = this.GetServiceState(SelectedService.DisplayName);
@@ -339,7 +339,7 @@ namespace WindowsServiceManager.ViewModels
 
             SelectedService.State = GetServiceState(SelectedService.DisplayName);
 
-            Messages.Insert(0, $"{SelectedService.DisplayName} successfully installed");
+            Messages.Insert(0, new Message() { Text = $"{SelectedService.DisplayName} successfully installed" });
 
             this.Cursor = Cursors.Arrow;
         }

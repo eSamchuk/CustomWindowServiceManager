@@ -128,7 +128,29 @@
 
                     <ListBox ItemsSource="{Binding Messages}" Grid.RowSpan="4" Grid.ColumnSpan="4"
                              VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
-                             FontSize="16"/>
+                             FontSize="16">
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Text="{Binding Time}"/>
+
+                                    <TextBlock Text="{Binding Text}" Grid.Column="2"/>
+
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+
+                        
+                        
+                    </ListBox>
 
                     <Button Grid.Row="1" Grid.Column="1" 
                             Command="{Binding ClearLogCommand}">

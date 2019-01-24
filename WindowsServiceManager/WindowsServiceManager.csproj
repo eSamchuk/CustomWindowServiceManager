@@ -76,6 +76,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\Message.cs" />
     <Compile Include="Models\RelayCommand.cs" />
     <Compile Include="Models\Service.cs" />
     <Compile Include="Models\ServiceState.cs" />
