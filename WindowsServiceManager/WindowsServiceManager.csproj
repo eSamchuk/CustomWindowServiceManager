@@ -49,6 +49,9 @@
     <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ConfigurationCore">
+      <HintPath>..\..\..\..\..\..\Work\EgyptAC\Commons\CommonsBin\ConfigurationCore.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Expression.Interactions, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="PropertyChanged, Version=2.5.8.0, Culture=neutral, PublicKeyToken=ee3ee20bcf148ddd, processorArchitecture=MSIL">
       <HintPath>..\packages\PropertyChanged.Fody.2.5.8\lib\net452\PropertyChanged.dll</HintPath>
@@ -76,6 +79,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\EgyptModule.cs" />
+    <Compile Include="Models\EgyptSubModule.cs" />
+    <Compile Include="Models\EgyptSystem.cs" />
     <Compile Include="Models\Message.cs" />
     <Compile Include="Models\RelayCommand.cs" />
     <Compile Include="Models\Service.cs" />
@@ -88,6 +94,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Models\WizardPage.cs" />
+    <Compile Include="Models\WrappedFile.cs" />
+    <Compile Include="ViewModels\ComparerViewModel.cs" />
+    <Compile Include="ViewModels\LibraryInspectorViewModel.cs" />
+    <Compile Include="ViewModels\LocakizationKeysVM.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

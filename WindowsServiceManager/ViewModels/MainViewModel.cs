@@ -89,7 +89,7 @@ namespace WindowsServiceManager.ViewModels
         {
             XmlSerializer xs = new XmlSerializer(typeof(ObservableCollection<Service>));
 
-            using (System.IO.FileStream fs = new FileStream("Services.xml", System.IO.FileMode.Open))
+            using (System.IO.FileStream fs = new FileStream("Services.xml", System.IO.FileMode.OpenOrCreate))
             {
                 xs.Serialize(fs, Services);
             }
@@ -97,16 +97,19 @@ namespace WindowsServiceManager.ViewModels
 
         private void LoadServices()
         {
-            using (FileStream fs = new FileStream("Services.xml", System.IO.FileMode.OpenOrCreate))
+            if (File.Exists("Services.xml"))
             {
-                Services = xs.Deserialize(fs) as ObservableCollection<Service>;
-            }
+                using (FileStream fs = new FileStream("Services.xml", System.IO.FileMode.OpenOrCreate))
+                {
+                    Services = xs.Deserialize(fs) as ObservableCollection<Service>;
+                }
 
-            SelectedService = Services.FirstOrDefault();
+                SelectedService = Services.FirstOrDefault();
 
-            foreach (var item in Services)
-            {
-                item.State = this.GetServiceState(item.DisplayName);
+                foreach (var item in Services)
+                {
+                    item.State = this.GetServiceState(item.DisplayName);
+                }
             }
         }
 
@@ -395,7 +398,7 @@ namespace WindowsServiceManager.ViewModels
         {
             this.EventLog = new ObservableCollection<EventLogEntry>(new EventLog("Application")
                 .Entries.Cast<EventLogEntry>()
-                .Where(x => x.EntryType == EventLogEntryType.Error && x.TimeGenerated.Date == DateTime.Now.Date)
+                .Where(x => ((x.EntryType == EventLogEntryType.Error) || (x.EntryType == EventLogEntryType.Information && x.InstanceId == 1346)) && x.TimeGenerated.Date == DateTime.Now.Date)
                 .OrderByDescending(x => x.TimeGenerated));
         }
     }
